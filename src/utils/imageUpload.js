@@ -1,11 +1,11 @@
 const cloudinary = require("../config/cloudinary")
 const fs = require("fs");
 
-const uploadToCloudinary = async(filePath)=>{
+const uploadToCloudinary = async(filePath,userId)=>{
 try {
 
     const result = await cloudinary.uploader.upload(filePath,{
-      folder: "profilePics"
+      folder: `devTinderProfiles/${userId}`
     });
     return {
         url: result.secure_url,
@@ -25,4 +25,12 @@ try {
 }
 }
 
-module.exports = {uploadToCloudinary};
+
+const deleteFromCloudinary = async(publicId)=>{
+try {
+  await cloudinary.uploader.destroy(publicId)
+} catch (error) {
+    console.error("Error deleting image from Cloudinary", err);
+}
+}
+module.exports = {uploadToCloudinary,deleteFromCloudinary};
