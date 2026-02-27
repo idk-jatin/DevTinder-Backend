@@ -29,7 +29,7 @@ const validateSignupData = async(data) => {
 
 const validateProfileData = (req)=>{
   let errors = [];
-  const validFields = ["firstName","lastName","age","about","gender","skills","experience","githubUsername","linkedinProfile"]
+  const validFields = ["firstName","lastName","age","about","gender","skills","experience","githubUsername","linkedinProfile", "profileCompleted"]
   const isDataValid = Object.keys(req.body).every(field => validFields.includes(field));
   if(!isDataValid) errors.push("Invalid Edit Fields!!");
 
