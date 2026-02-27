@@ -42,12 +42,14 @@ authRouter.post("/login", async (req, res) => {
       res
         .cookie("token", accessToken, {
           httpOnly: true,
-          sameSite: "Strict",
+          sameSite: "none",
+          secure: true,
           maxAge: 15 * 60 * 1000,
         })
         .cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          sameSite: "Strict",
+          sameSite: "none",
+          secure: true,
           maxAge: 7 * 24 * 60 * 60 * 1000,
         })
         
@@ -79,8 +81,8 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", (req, res) => {
   res
-    .clearCookie("token")
-    .clearCookie("refreshToken")
+    .clearCookie("token", { sameSite: "none", secure: true })
+    .clearCookie("refreshToken", { sameSite: "none", secure: true })
     .json({ message: "Logout Successful" });
 });
 
@@ -97,13 +99,14 @@ authRouter.post("/refresh-token", async (req, res) => {
 
     res.cookie("token", newAccessToken, {
       httpOnly: true,
-      sameSite: "Strict",
+      sameSite: "none",
+      secure: true,
       maxAge: 15 * 60 * 1000,
     });
 
     res.json({ message: "Access token refreshed" });
   } catch (err) {
-    res.clearCookie("refreshToken");
+    res.clearCookie("refreshToken", { sameSite: "none", secure: true });
     res.status(401).json({ error: "Invalid refresh token" });
   }
 });

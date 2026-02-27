@@ -16,7 +16,7 @@ const userAuth = async (req, res, next) => {
     if (err.name === "TokenExpiredError") {
       return res.status(403).json({ error: "Access token expired" });
     }
-    res.clearCookie("token");
+    res.clearCookie("token", { sameSite: "none", secure: true });
     return res.status(401).json({ error: err.message });
   }
 };

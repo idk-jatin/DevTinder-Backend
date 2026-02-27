@@ -201,7 +201,7 @@ profileRouter.delete("/profile/delete", userAuth, async (req, res) => {
     });
 
     await User.deleteOne({ _id: userId });
-    res.cookie("token", null, { expires: new Date(Date.now()) });
+    res.cookie("token", null, { expires: new Date(Date.now()), sameSite: "none", secure: true });
     res
       .status(200)
       .json({ message: "User and all related data deleted successfully." });
