@@ -42,8 +42,8 @@ const validateProfileData = (req)=>{
   if(req.body.gender && !["Male","Female","Others"].includes(req.body.gender)){
     errors.push("Genders can be Male/Female or Others");
   }
-  if (req.body.about && req.body.about.length > 100) {
-    errors.push("About max length is 100 chars");
+  if (req.body.about && req.body.about.length > 500) {
+    errors.push("About max length is 500 chars");
   }
   if(req.body.photoUrl && !validator.isURL(req.body.photoUrl)){
     errors.push("Not a valid URL");
@@ -56,7 +56,7 @@ const validateProfileData = (req)=>{
     errors.push("Experience can be - Student, Entry, Junior, Intermediate, Senior, Lead");
   }
 
-  if (req.body.githubUsername && !/^[a-z0-9-]+$/.test(req.body.githubUsername)) {
+  if (req.body.githubUsername && !/^[a-zA-Z0-9-]+$/.test(req.body.githubUsername)) {
     errors.push("Github username is not valid");
   }
 

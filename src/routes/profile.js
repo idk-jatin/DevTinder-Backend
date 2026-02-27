@@ -79,7 +79,7 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
       message: `${loggedInUser.firstName}, Your profile updated successfully`,
     });
   } catch (err) {
-    res.status(400).json({error : "Failed to edit profile"})
+    res.status(400).json({error : err.message || "Failed to edit profile"})
   }
 });
 
