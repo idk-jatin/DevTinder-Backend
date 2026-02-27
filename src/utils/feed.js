@@ -92,17 +92,18 @@ const getLikesPoint = (probFeedUsers) => {
 
 const getUserFeed = async (loggedInUser) => {
     try {
-      const safeData = "firstName lastName age gender about skills likes experience githubUsername linkedinProfile";
+      const safeData = "firstName lastName age gender about skills likes experience githubUsername linkedinProfile photoUrl";
         const connectedIds = await getConnectedIds(loggedInUser._id.toString());
 
         let probFeedUsers = await User.find({
           _id: { $nin: [...connectedIds, loggedInUser._id] },
         }).select(safeData).lean();
-      
+        
         probFeedUsers =  getSkillsPoint(probFeedUsers, loggedInUser.skills);
         probFeedUsers =  getExperiencePoint(probFeedUsers,loggedInUser.experience);
         probFeedUsers =  getLikesPoint(probFeedUsers);
-      
+
+        
         probFeedUsers.sort((a,b) => b.totalPoint - a.totalPoint);
         return probFeedUsers.slice(0,15);
     } catch (err) {

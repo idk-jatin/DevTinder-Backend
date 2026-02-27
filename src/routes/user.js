@@ -27,10 +27,20 @@ userRouter.get("/user/matches",userAuth,async(req,res)=>{
     try {
         const loggedInUser = req.user;
         const matches = await Connection.find({
-            toUserId:loggedInUser._id,
-            status: "matched",
-        }).populate("fromUserId","firstName lastName age gender about")
-        const matchDataRefined = matches.map( match => match.fromUserId);
+            $or: [
+                { toUserId: loggedInUser._id, status: "matched" },
+                { fromUserId: loggedInUser._id, status: "matched" }
+            ]
+        }).populate("fromUserId", "firstName lastName age gender about photoUrl")
+          .populate("toUserId", "firstName lastName age gender about photoUrl");
+          
+        const matchDataRefined = matches.map(match => {
+            if (match.fromUserId._id.toString() === loggedInUser._id.toString()) {
+                return match.toUserId;
+            }
+            return match.fromUserId;
+        });
+        
         res.json({matchList : matchDataRefined });
 }  catch (err) {
     res.status(500).json({Error: err.message})
@@ -41,14 +51,15 @@ userRouter.get("/user/matches",userAuth,async(req,res)=>{
 userRouter.get("/feed",userAuth,async(req,res)=>{
     try {
       const loggedInUser = req.user;
-    const feedUsers = await getUserFeed(loggedInUser);
+      const feedUsers = await getUserFeed(loggedInUser);
 
-    if(!feedUsers || feedUsers.length===0) {
-        return res.status(404).json({error : "No current user matches!"});
-    }
-    res.json({ userCount : feedUsers.length,Feed : feedUsers});   
+      if(!feedUsers || feedUsers.length===0) {
+          // Changed from 404 to 200 so the frontend doesn't treat an empty feed as an error
+          return res.status(200).json({ Feed : [], message: "No current user matches!"});
+      }
+      return res.status(200).json({ Feed : feedUsers,message:"Feed Fetched Succesfully"});   
 }  catch (err) {
-    res.status(500).json({error: err.message})
+    return res.status(500).json({error: err.message})
 }
 });
 
@@ -65,7 +76,7 @@ userRouter.post("/user/like/:userId",userAuth,async (req,res) => {
        
           const [toUser, connection] = await Promise.all([
             User.findById(toUserId),
-            Connection.findOneAndUpdate({
+            Connection.findOne({
               $or: [
                 { fromUserId: loggedInUserId, toUserId: toUserId, status: "matched" },
                 { toUserId: loggedInUserId, fromUserId: toUserId, status: "matched" },
@@ -81,11 +92,15 @@ userRouter.post("/user/like/:userId",userAuth,async (req,res) => {
             return res.status(404).json({error : "Connection not found"});
         }
 
-        if(connection.liked){
+        if(connection.likedBy && connection.likedBy.includes(loggedInUserId)){
             return res.status(400).json({ error: "Already liked this user!"});
         }
 
-        connection.liked = true;
+        if(!connection.likedBy) {
+            connection.likedBy = [];
+        }
+        
+        connection.likedBy.push(loggedInUserId);
         await connection.save();
 
         toUser.likes = (toUser.likes || 0) + 1;

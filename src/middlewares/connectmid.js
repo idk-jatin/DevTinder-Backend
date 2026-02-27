@@ -36,22 +36,26 @@ const existingConnection=async(req,res,next)=>{
             { fromUserId, toUserId },
             { fromUserId: toUserId, toUserId: fromUserId },
           ],
-          });
-          if (existingconnection) {
-            if (existingconnection.status === "ignored" && existingconnection.toUserId.toString() === fromUserId.toString()) {
-                return res.status(400).json({ error: "Connection Declined!!" });
-            }
+        });
 
+        if (existingconnection) {
+            const status = req.params.status.toLowerCase();
+
+            // If we already initiated the connection previously, block it.
             if (existingconnection.fromUserId.toString() === fromUserId.toString()) {
-                return res.status(400).json({ error: "Connection request already exists!"});
+                return res.status(400).json({ error: "You have already sent a request to this user!"});
             }
 
-            if (["pending","interested","matched","accepted"].includes(existingConnection.status)) {
-              return res.status(400).json({ error: "A connection already exists between both users" });
+            // If THEY initiated the connection, and we are ignoring them, block it or let it handle reject logic.
+            // But if we are sending "interested" back, we want to ALLOW it to proceed so it becomes a match.
+            if (existingconnection.fromUserId.toString() === toUserId.toString()) {
+                if (status === "ignored") {
+                     return res.status(400).json({ error: "A connection already exists between both users" });
+                }
+                // If status === "interested", we intentionally bypass the block to let pendingStatus handle the match!
             }
-
         }
-          next();
+        next();
     } catch (err) {
         return res.status(400).json({error : err.message});
     }}
@@ -69,16 +73,15 @@ const pendingStatus=async(req,res,next)=>{
               });
         
               if (reverseConnection && status === "interested") {
+                // We mark it as 'matched' directly since both are interested!
                 await Connection.findOneAndUpdate(
-                  { fromUserId, toUserId },
-                  { $set: { status: "pending" } }, 
+                  { fromUserId: toUserId, toUserId: fromUserId },
+                  { $set: { status: "matched" } }, 
                   { new: true }
                 );
         
-                await Connection.findOneAndUpdate(
-                  { fromUserId: toUserId, toUserId: fromUserId },
-                  { $set: { status: "pending" } }
-                );
+                // Instead of creating two records, we just update the existing one to 'matched'
+                // The frontend relies on the 200 OK message to know it worked.
                 req.isPending = true;
               }
               next();

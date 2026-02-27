@@ -87,6 +87,10 @@ const userSchema = new mongoose.Schema({
             message: "max of 10 skills can be added!"
         },
         set: skills => Array.from(new Set(skills.map(skill => skill.toLowerCase())))
+    },
+    profileCompleted: {
+        type : Boolean,
+        default: false
     }
 },{
     timestamps: true
@@ -95,16 +99,19 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function (next) {
     const user = this;
     if (user.isModified('password')) {
-        user.password = await bcrypt.hash(user.password, 8);
+        user.password = await bcrypt.hash(user.password, 10);
     }
     next();
 });
   
-userSchema.methods.getJWT = async function() {
-   const user = this;
-    const token = jwt.sign({_id:user._id},process.env.JWT_SECRET,{expiresIn:"7d"});
-    return token;
-}
+userSchema.methods.getJWT = function () {
+  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+};
+
+userSchema.methods.getRefreshToken = function () {
+  return jwt.sign({ _id: this._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+};
+
 userSchema.methods.validatePassword = async function(userInputPassword){
    const user = this;
    const hashedPass = user.password;

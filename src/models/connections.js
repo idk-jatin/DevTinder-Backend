@@ -27,20 +27,15 @@ const connectionSchema = new mongoose.Schema(
       default: "interested",
       required: true,
     },
-    liked:{
-      type: Boolean,
-      default: false
-    }
+    likedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }]
   },
   { timestamps: true }
 );
 
-connectionSchema.pre('save', function (next) {
-  if (this.liked === true) {
-    return next(new Error("Already likes this user!"));
-  }
-  next();
-});
+// removed broken pre save hook
 // compound index mongoose
 connectionSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
 

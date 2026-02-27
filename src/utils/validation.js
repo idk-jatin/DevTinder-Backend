@@ -10,7 +10,7 @@ const validateSignupData = async(data) => {
   if (!firstName || firstName.length < 3 || firstName.length > 40) {
     errors.push("First Name should be between 3-40 characters.");
   }
-  if (!lastName || lastName.length < 3 || lastName.length > 40) {
+  if (lastName && (lastName.length < 3 || lastName.length > 40)) {
     errors.push("Last Name should be between 3-40 characters.");
   }
 
@@ -18,7 +18,7 @@ const validateSignupData = async(data) => {
     errors.push("Invalid email format.");
   }
 
-  if (!password || !validator.isStrongPassword(password, { minLength: 8, minNumbers: 1, minSymbols: 1 })) {
+  if (!password || !validator.isStrongPassword(password, { minLength: 8, minLowercase: 0, minUppercase: 0, minNumbers: 1, minSymbols: 1 })) {
     errors.push("Password must be at least 8 characters long and include at least one number and one special character.");
   }
   if (errors.length > 0) {
@@ -29,7 +29,7 @@ const validateSignupData = async(data) => {
 
 const validateProfileData = (req)=>{
   let errors = [];
-  const validFields = ["firstName","lastName","age","about","photoUrl","gender","skills","experience","githubUsername","linkedinProfile"]
+  const validFields = ["firstName","lastName","age","about","gender","skills","experience","githubUsername","linkedinProfile"]
   const isDataValid = Object.keys(req.body).every(field => validFields.includes(field));
   if(!isDataValid) errors.push("Invalid Edit Fields!!");
 
