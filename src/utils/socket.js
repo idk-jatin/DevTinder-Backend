@@ -7,7 +7,7 @@ let io;
 const initializeSocket = (server) => {
     io = socketio(server, {
         cors: {
-            origin: "http://localhost:5173",
+            origin: "https://devtinder-six.vercel.app",
             credentials: true
         }
     });
